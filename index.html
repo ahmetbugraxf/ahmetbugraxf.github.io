@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ahmet Buğra | Tech Blog</title>
+    <title>Ahmet Buğra | Security Research</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,19 +54,14 @@
         <section class="hero">
             <div class="container">
                 <div class="hero-content">
+                    <p class="hero-intro">Security Research & Notes</p>
                     <h1 class="hero-title">
-                        <span class="line">Merhaba, ben</span>
-                        <span class="line highlight">Ahmet Buğra</span>
+                        <span class="line highlight">Siber Güvenlik</span>
+                        <span class="line">Araştırmaları</span>
                     </h1>
                     <p class="hero-description">
-                        Yazılım, güvenlik ve teknoloji üzerine yazılar. 
-                        <span class="cursor">_</span>
+                        Mobil güvenlik, penetrasyon testleri ve güvenlik araştırmaları üzerine teknik yazılar.
                     </p>
-                    <div class="hero-tags">
-                        <span class="tag">Security</span>
-                        <span class="tag">DevOps</span>
-                        <span class="tag">Programming</span>
-                    </div>
                 </div>
             </div>
         </section>
@@ -74,28 +69,29 @@
         <section class="posts-section">
             <div class="container">
                 <h2 class="section-title">
-                    <span class="title-icon">//</span> Son Yazılar
+                    <span class="title-icon">//</span> Yazılar
                 </h2>
                 
-                <div class="posts-grid">
-                    <article class="post-card" style="--delay: 0">
-                        <a href="/ssl-bypass/" class="post-link">
-                            <div class="post-meta">
-                                <time datetime="2024-12-01">01 Aralık 2024</time>
-                                <span class="post-category">Security</span>
+                <div class="posts-list">
+                    <article class="post-item">
+                        <a href="/ssl-bypass/" class="post-item-link">
+                            <div class="post-item-content">
+                                <div class="post-item-header">
+                                    <h3 class="post-item-title">SSL Pinning Bypass</h3>
+                                    <span class="post-item-arrow">→</span>
+                                </div>
+                                <p class="post-item-excerpt">
+                                    Mobil uygulama güvenlik testlerinde SSL/TLS sertifika sabitleme mekanizmalarını atlatma teknikleri.
+                                </p>
+                                <div class="post-item-meta">
+                                    <time datetime="2024-12-01">01.12.2024</time>
+                                    <div class="post-item-tags">
+                                        <span>Android</span>
+                                        <span>iOS</span>
+                                        <span>Frida</span>
+                                    </div>
+                                </div>
                             </div>
-                            <h3 class="post-title">SSL Pinning Bypass Teknikleri</h3>
-                            <p class="post-excerpt">
-                                Mobil uygulamalarda SSL pinning mekanizmalarını atlatma yöntemleri ve güvenlik analizi teknikleri hakkında detaylı bir inceleme.
-                            </p>
-                            <div class="post-tags">
-                                <span class="post-tag">SSL</span>
-                                <span class="post-tag">Mobile</span>
-                                <span class="post-tag">Frida</span>
-                            </div>
-                            <span class="read-more">
-                                Devamını oku <span class="arrow">→</span>
-                            </span>
                         </a>
                     </article>
                 </div>
@@ -110,8 +106,6 @@
                 <span class="footer-year">© 2024</span> 
                 <span class="footer-separator">|</span>
                 <span>Ahmet Buğra</span>
-                <span class="footer-separator">|</span>
-                <span class="footer-made">Made with <span class="heart">♥</span> and caffeine</span>
             </p>
         </div>
     </footer>

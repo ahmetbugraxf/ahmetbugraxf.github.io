@@ -55,111 +55,187 @@
             <header class="post-header">
                 <div class="container">
                     <a href="/" class="back-link">
-                        <span class="arrow">←</span> Tüm yazılar
+                        <span class="arrow">←</span> Blog
                     </a>
                     <div class="post-header-meta">
                         <time datetime="2024-12-01">01 Aralık 2024</time>
-                        <span class="post-header-category">Security</span>
+                        <span class="reading-time">~8 dk okuma</span>
                     </div>
-                    <h1 class="post-header-title">SSL Pinning Bypass Teknikleri</h1>
+                    <h1 class="post-header-title">SSL Pinning Bypass</h1>
                     <p class="post-header-excerpt">
-                        Mobil uygulamalarda SSL pinning mekanizmalarını atlatma yöntemleri ve güvenlik analizi teknikleri hakkında detaylı bir inceleme.
+                        Mobil uygulama güvenlik testlerinde SSL/TLS sertifika sabitleme mekanizmalarını atlatma teknikleri.
                     </p>
+                    <div class="post-tags-header">
+                        <span class="tag-pill">Android</span>
+                        <span class="tag-pill">iOS</span>
+                        <span class="tag-pill">Frida</span>
+                        <span class="tag-pill">MITM</span>
+                    </div>
                 </div>
             </header>
 
             <div class="post-content">
                 <div class="container">
-                    <h2>SSL Pinning Nedir?</h2>
-                    <p>
-                        SSL Pinning (veya Certificate Pinning), mobil uygulamaların sadece belirli sertifikalara güvenmesini sağlayan bir güvenlik mekanizmasıdır. Bu teknik, Man-in-the-Middle (MITM) saldırılarını önlemek için kullanılır.
-                    </p>
-                    <p>
-                        Normal HTTPS bağlantılarında, cihazın güvendiği herhangi bir Certificate Authority (CA) tarafından imzalanmış sertifikalar kabul edilir. Ancak SSL Pinning kullanıldığında, uygulama sadece önceden tanımlanmış sertifikalara güvenir.
-                    </p>
+                    
+                    <!-- Table of Contents -->
+                    <div class="toc">
+                        <div class="toc-title">İçindekiler</div>
+                        <ul class="toc-list">
+                            <li><a href="#what-is">SSL Pinning Nedir?</a></li>
+                            <li><a href="#why">Neden Bypass Gerekli?</a></li>
+                            <li><a href="#techniques">Bypass Teknikleri</a></li>
+                            <li><a href="#ios">iOS Bypass</a></li>
+                            <li><a href="#tools">Araçlar</a></li>
+                            <li><a href="#defense">Savunma Yöntemleri</a></li>
+                        </ul>
+                    </div>
 
-                    <h2>Neden SSL Pinning Bypass Gerekli?</h2>
-                    <p>
-                        Güvenlik araştırmacıları ve penetrasyon testçileri için SSL pinning'i bypass etmek şu durumlarda gereklidir:
-                    </p>
-                    <ul>
-                        <li>Mobil uygulamanın API trafiğini analiz etmek</li>
-                        <li>Güvenlik açıklarını tespit etmek</li>
-                        <li>Uygulamanın davranışını anlamak</li>
-                        <li>Bug bounty programlarında güvenlik testi yapmak</li>
-                    </ul>
+                    <!-- What is SSL Pinning -->
+                    <section id="what-is">
+                        <h2>SSL Pinning Nedir?</h2>
+                        <p>
+                            SSL/TLS Certificate Pinning, mobil uygulamaların yalnızca <strong>önceden tanımlanmış sertifikalara</strong> güvenmesini sağlayan bir güvenlik mekanizmasıdır.
+                        </p>
+                        
+                        <div class="info-box">
+                            <div class="info-box-icon">🔐</div>
+                            <div class="info-box-content">
+                                <strong>Amaç:</strong> Man-in-the-Middle (MITM) saldırılarını önlemek. Proxy araçları (Burp Suite, mitmproxy) ile trafiği dinlemeyi engellemek.
+                            </div>
+                        </div>
 
-                    <h2>Bypass Teknikleri</h2>
+                        <div class="comparison-grid">
+                            <div class="comparison-item">
+                                <div class="comparison-label bad">Pinning Yok</div>
+                                <p>Cihazın güvendiği herhangi bir CA sertifikası kabul edilir</p>
+                            </div>
+                            <div class="comparison-item">
+                                <div class="comparison-label good">Pinning Var</div>
+                                <p>Sadece uygulamaya gömülü sertifika/public key kabul edilir</p>
+                            </div>
+                        </div>
+                    </section>
 
-                    <h3>1. Frida ile Dinamik Hooking</h3>
-                    <p>
-                        Frida, runtime'da uygulamaların davranışını değiştirmemize olanak tanıyan güçlü bir araçtır. SSL pinning bypass için en popüler yöntemlerden biridir.
-                    </p>
+                    <!-- Why Bypass -->
+                    <section id="why">
+                        <h2>Neden Bypass Gerekli?</h2>
+                        <p>Güvenlik araştırmacıları ve pentest uzmanları için:</p>
+                        
+                        <ul class="check-list">
+                            <li>API endpoint'lerini ve request/response yapısını analiz etmek</li>
+                            <li>Authentication mekanizmalarını test etmek</li>
+                            <li>Business logic açıklarını tespit etmek</li>
+                            <li>Sensitive data leakage kontrolü</li>
+                            <li>Bug bounty programlarında güvenlik testi</li>
+                        </ul>
+                    </section>
 
-                    <pre><code>// Frida SSL Pinning Bypass Script
-Java.perform(function() {
-    var TrustManagerImpl = Java.use('com.android.org.conscrypt.TrustManagerImpl');
-    
-    TrustManagerImpl.verifyChain.implementation = function(untrustedChain, 
+                    <!-- Techniques -->
+                    <section id="techniques">
+                        <h2>Bypass Teknikleri</h2>
+
+                        <!-- Frida -->
+                        <div class="technique-card">
+                            <div class="technique-header">
+                                <span class="technique-number">01</span>
+                                <h3>Frida ile Runtime Hooking</h3>
+                            </div>
+                            <p>
+                                Frida, çalışan uygulamaların fonksiyonlarını runtime'da hook'layarak davranışlarını değiştirmemize olanak tanır.
+                            </p>
+
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-lang">javascript</span>
+                                    <span class="code-file">ssl_bypass.js</span>
+                                </div>
+                                <pre><code>Java.perform(function() {
+    // TrustManager bypass
+    var TrustManager = Java.use('com.android.org.conscrypt.TrustManagerImpl');
+    TrustManager.verifyChain.implementation = function(untrustedChain, 
         trustAnchorChain, host, clientAuth, ocspData, tlsSctData) {
-        console.log('[+] Bypassing SSL Pinning for: ' + host);
+        console.log('[*] Bypassing: ' + host);
         return untrustedChain;
     };
-    
-    // OkHttp3 CertificatePinner bypass
-    var CertificatePinner = Java.use('okhttp3.CertificatePinner');
-    CertificatePinner.check.overload('java.lang.String', 'java.util.List')
-        .implementation = function(hostname, peerCertificates) {
-        console.log('[+] OkHttp3 bypass for: ' + hostname);
-        return;
+
+    // OkHttp3 bypass
+    var CertPinner = Java.use('okhttp3.CertificatePinner');
+    CertPinner.check.overload('java.lang.String', 'java.util.List')
+        .implementation = function(hostname, certs) {
+        console.log('[*] OkHttp bypass: ' + hostname);
     };
 });</code></pre>
+                            </div>
 
-                    <p>Frida'yı çalıştırmak için:</p>
-
-                    <pre><code># Frida server'ı cihazda başlat
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-lang">bash</span>
+                                    <span class="code-file">terminal</span>
+                                </div>
+                                <pre><code># Frida server başlat
 adb push frida-server /data/local/tmp/
 adb shell "chmod 755 /data/local/tmp/frida-server"
 adb shell "/data/local/tmp/frida-server &"
 
-# Script'i çalıştır
+# Script çalıştır
 frida -U -f com.target.app -l ssl_bypass.js --no-pause</code></pre>
+                            </div>
+                        </div>
 
-                    <h3>2. Objection ile Otomatik Bypass</h3>
-                    <p>
-                        Objection, Frida üzerine kurulu bir toolkit'tir ve SSL pinning bypass için hazır komutlar sunar:
-                    </p>
+                        <!-- Objection -->
+                        <div class="technique-card">
+                            <div class="technique-header">
+                                <span class="technique-number">02</span>
+                                <h3>Objection</h3>
+                            </div>
+                            <p>
+                                Frida üzerine kurulu, tek komutla SSL pinning bypass yapabilen toolkit.
+                            </p>
 
-                    <pre><code># Objection ile uygulamaya bağlan
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-lang">bash</span>
+                                    <span class="code-file">terminal</span>
+                                </div>
+                                <pre><code># Uygulamaya bağlan
 objection -g com.target.app explore
 
-# SSL Pinning'i devre dışı bırak
-android sslpinning disable
+# Tek komut ile bypass
+android sslpinning disable</code></pre>
+                            </div>
+                        </div>
 
-# iOS için
-ios sslpinning disable</code></pre>
+                        <!-- APK Modification -->
+                        <div class="technique-card">
+                            <div class="technique-header">
+                                <span class="technique-number">03</span>
+                                <h3>APK Modifikasyonu</h3>
+                            </div>
+                            <p>
+                                Network Security Config dosyasını değiştirerek user sertifikalarına güvenmeyi etkinleştirme.
+                            </p>
 
-                    <h3>3. APK Modifikasyonu</h3>
-                    <p>
-                        Statik analiz ve APK modifikasyonu ile SSL pinning kaldırılabilir:
-                    </p>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-lang">bash</span>
+                                    <span class="code-file">terminal</span>
+                                </div>
+                                <pre><code># Decompile
+apktool d target.apk -o target_src
 
-                    <pre><code># APK'yı decompile et
-apktool d target.apk -o target_decompiled
-
-# network_security_config.xml düzenle
-# res/xml/network_security_config.xml
-
-# APK'yı yeniden derle
-apktool b target_decompiled -o target_modified.apk
+# Modifikasyon sonrası yeniden derle
+apktool b target_src -o target_mod.apk
 
 # İmzala
-jarsigner -keystore my.keystore target_modified.apk alias_name</code></pre>
+apksigner sign --ks my.keystore target_mod.apk</code></pre>
+                            </div>
 
-                    <p>Network Security Config örneği:</p>
-
-                    <pre><code>&lt;?xml version="1.0" encoding="utf-8"?&gt;
-&lt;network-security-config&gt;
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-lang">xml</span>
+                                    <span class="code-file">res/xml/network_security_config.xml</span>
+                                </div>
+                                <pre><code>&lt;network-security-config&gt;
     &lt;base-config&gt;
         &lt;trust-anchors&gt;
             &lt;certificates src="system" /&gt;
@@ -167,70 +243,153 @@ jarsigner -keystore my.keystore target_modified.apk alias_name</code></pre>
         &lt;/trust-anchors&gt;
     &lt;/base-config&gt;
 &lt;/network-security-config&gt;</code></pre>
+                            </div>
+                        </div>
 
-                    <h3>4. Magisk + LSPosed Modülleri</h3>
-                    <p>
-                        Root'lu cihazlarda sistem genelinde SSL bypass için modüller kullanılabilir:
-                    </p>
-                    <ul>
-                        <li><strong>TrustMeAlready:</strong> Tüm sertifika doğrulamalarını bypass eder</li>
-                        <li><strong>SSLUnpinning:</strong> Popüler kütüphaneler için hook'lar içerir</li>
-                        <li><strong>JustTrustMe:</strong> Xposed modülü olarak çalışır</li>
-                    </ul>
+                        <!-- Magisk Modules -->
+                        <div class="technique-card">
+                            <div class="technique-header">
+                                <span class="technique-number">04</span>
+                                <h3>Magisk Modülleri</h3>
+                            </div>
+                            <p>Root'lu cihazlarda sistem genelinde bypass:</p>
+                            
+                            <div class="module-grid">
+                                <div class="module-item">
+                                    <strong>TrustMeAlready</strong>
+                                    <span>Tüm sertifika doğrulamalarını bypass</span>
+                                </div>
+                                <div class="module-item">
+                                    <strong>MagiskTrustUserCerts</strong>
+                                    <span>User cert'leri system cert olarak ekler</span>
+                                </div>
+                                <div class="module-item">
+                                    <strong>LSPosed + SSLUnpinning</strong>
+                                    <span>Popüler kütüphaneler için hook</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-                    <h2>iOS için Bypass Teknikleri</h2>
-                    <p>
-                        iOS cihazlarda SSL pinning bypass için jailbreak gereklidir:
-                    </p>
+                    <!-- iOS -->
+                    <section id="ios">
+                        <h2>iOS Bypass</h2>
+                        
+                        <div class="warning-box">
+                            <div class="warning-box-icon">⚠️</div>
+                            <div class="warning-box-content">
+                                iOS'ta SSL pinning bypass için <strong>jailbreak</strong> gereklidir.
+                            </div>
+                        </div>
 
-                    <pre><code>// Frida iOS SSL Bypass
-var resolver = new ApiResolver('objc');
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">javascript</span>
+                                <span class="code-file">ios_ssl_bypass.js</span>
+                            </div>
+                            <pre><code>var resolver = new ApiResolver('objc');
 resolver.enumerateMatches('*[* evaluateServerTrust:*]', {
     onMatch: function(match) {
         Interceptor.attach(match.address, {
-            onEnter: function(args) {
-                console.log('[+] Hooking: ' + match.name);
-            },
             onLeave: function(retval) {
-                retval.replace(0x1); // Trust everything
+                retval.replace(0x1);
+                console.log('[*] Bypassed: ' + match.name);
             }
         });
     },
     onComplete: function() {}
 });</code></pre>
+                        </div>
 
-                    <h2>Araçlar ve Kurulum</h2>
-                    <p>SSL Pinning bypass için gerekli araçlar:</p>
-                    <ul>
-                        <li><a href="https://frida.re/" target="_blank">Frida</a> - Dinamik instrumentasyon</li>
-                        <li><a href="https://github.com/sensepost/objection" target="_blank">Objection</a> - Frida wrapper</li>
-                        <li><a href="https://portswigger.net/burp" target="_blank">Burp Suite</a> - Proxy ve trafik analizi</li>
-                        <li><a href="https://ibotpeaches.github.io/Apktool/" target="_blank">apktool</a> - APK decompile/recompile</li>
-                        <li><a href="https://github.com/skylot/jadx" target="_blank">jadx</a> - Java decompiler</li>
-                    </ul>
+                        <p>Alternatif olarak <code>SSL Kill Switch 2</code> veya <code>Objection</code> kullanılabilir:</p>
+                        
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">bash</span>
+                                <span class="code-file">terminal</span>
+                            </div>
+                            <pre><code>objection -g com.target.app explore
+ios sslpinning disable</code></pre>
+                        </div>
+                    </section>
 
-                    <h2>Tespit ve Savunma</h2>
-                    <p>
-                        Geliştiriciler için SSL pinning bypass'ı zorlaştırmak için öneriler:
-                    </p>
-                    <ul>
-                        <li>Root/Jailbreak tespiti ekleyin</li>
-                        <li>Frida ve Xposed tespiti yapın</li>
-                        <li>Certificate transparency loglarını kontrol edin</li>
-                        <li>Birden fazla pinning yöntemi kullanın</li>
-                        <li>Obfuscation uygulayın</li>
-                    </ul>
+                    <!-- Tools -->
+                    <section id="tools">
+                        <h2>Araçlar</h2>
+                        
+                        <div class="tools-grid">
+                            <a href="https://frida.re/" target="_blank" class="tool-card">
+                                <div class="tool-name">Frida</div>
+                                <div class="tool-desc">Dynamic instrumentation toolkit</div>
+                            </a>
+                            <a href="https://github.com/sensepost/objection" target="_blank" class="tool-card">
+                                <div class="tool-name">Objection</div>
+                                <div class="tool-desc">Runtime mobile exploration</div>
+                            </a>
+                            <a href="https://portswigger.net/burp" target="_blank" class="tool-card">
+                                <div class="tool-name">Burp Suite</div>
+                                <div class="tool-desc">Web proxy & scanner</div>
+                            </a>
+                            <a href="https://github.com/skylot/jadx" target="_blank" class="tool-card">
+                                <div class="tool-name">jadx</div>
+                                <div class="tool-desc">DEX to Java decompiler</div>
+                            </a>
+                        </div>
+                    </section>
 
-                    <blockquote>
+                    <!-- Defense -->
+                    <section id="defense">
+                        <h2>Savunma Yöntemleri</h2>
+                        <p>Geliştiriciler için bypass'ı zorlaştırma önerileri:</p>
+                        
+                        <ul class="defense-list">
+                            <li>
+                                <span class="defense-icon">🔍</span>
+                                <div>
+                                    <strong>Root/Jailbreak Detection</strong>
+                                    <p>Cihaz bütünlüğünü kontrol edin</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="defense-icon">🎣</span>
+                                <div>
+                                    <strong>Frida Detection</strong>
+                                    <p>Frida server process ve port kontrolü</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="defense-icon">🔄</span>
+                                <div>
+                                    <strong>Certificate Rotation</strong>
+                                    <p>Sertifikaları periyodik olarak yenileyin</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="defense-icon">🛡️</span>
+                                <div>
+                                    <strong>Multiple Pinning Layers</strong>
+                                    <p>Birden fazla pinning yöntemi kullanın</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="defense-icon">🔒</span>
+                                <div>
+                                    <strong>Code Obfuscation</strong>
+                                    <p>ProGuard, R8, iXGuard kullanın</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <!-- Disclaimer -->
+                    <div class="disclaimer-box">
+                        <strong>⚖️ Yasal Uyarı</strong>
                         <p>
-                            <strong>Önemli:</strong> Bu teknikler sadece yasal ve etik güvenlik testleri için kullanılmalıdır. İzinsiz erişim suçtur.
+                            Bu teknikler yalnızca <strong>yasal güvenlik testleri</strong> ve <strong>eğitim amaçlı</strong> kullanılmalıdır. 
+                            İzinsiz erişim yasalara aykırıdır. Testlere başlamadan önce yazılı izin alın.
                         </p>
-                    </blockquote>
+                    </div>
 
-                    <h2>Sonuç</h2>
-                    <p>
-                        SSL Pinning bypass, mobil güvenlik testlerinin önemli bir parçasıdır. Frida gibi araçlar sayesinde dinamik olarak bu korumalar atlatılabilir. Ancak her zaman yasal sınırlar içinde kalmak ve sadece yetkili testlerde bu teknikleri kullanmak önemlidir.
-                    </p>
                 </div>
             </div>
         </article>
@@ -242,8 +401,6 @@ resolver.enumerateMatches('*[* evaluateServerTrust:*]', {
                 <span class="footer-year">© 2024</span> 
                 <span class="footer-separator">|</span>
                 <span>Ahmet Buğra</span>
-                <span class="footer-separator">|</span>
-                <span class="footer-made">Made with <span class="heart">♥</span> and caffeine</span>
             </p>
         </div>
     </footer>
@@ -251,4 +408,3 @@ resolver.enumerateMatches('*[* evaluateServerTrust:*]', {
     <script src="../script.js"></script>
 </body>
 </html>
-
